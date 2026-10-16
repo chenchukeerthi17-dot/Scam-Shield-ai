@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scam Shield AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <main class="container">
+        <div class="shield">🛡️</div>
+        <h1>Scam Shield AI</h1>
+        <p class="subtitle">
+            Your AI assistant for identifying suspicious messages.
+        </p>
+
+        <label for="message">Paste your message below</label>
+        <textarea id="message"
+            placeholder="Paste a suspicious SMS, email, or message here..."
+        ></textarea>
+
+        <button id="scanButton" onclick="scanMessage()">
+            Scan Message
+        </button>
+
+        <p id="status" role="status"></p>
+
+        <section id="resultBox" hidden>
+            <h2>Analysis Results</h2>
+            <pre id="result"></pre>
+            <p class="disclaimer">
+                AI results can be wrong. Verify suspicious messages
+                independently before taking action.
+            </p>
+        </section>
+    </main>
+
+    <script>
+        async function scanMessage() {
+            const message = document.getElementById("message").value.trim();
+            const status = document.getElementById("status");
+            const button = document.getElementById("scanButton");
+            const resultBox = document.getElementById("resultBox");
+            const result = document.getElementById("result");
+
+            resultBox.hidden = true;
+
+            if (!message) {
+                status.textContent = "Please enter a message first.";
+                return;
+            }
+
+            button.disabled = true;
+            status.textContent = "Gemma is analyzing your message...";
+
+            try {
+                const response = await fetch("/scan", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({message})
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Analysis failed.");
+                }
+
+                result.textContent = data.result;
+                resultBox.hidden = false;
+                status.textContent = "Analysis complete.";
+            } catch (error) {
+                status.textContent = error.message;
+            } finally {
+                button.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
